@@ -50,7 +50,7 @@ def name_surface_file(args, dir_file):
 
 
 def setup_surface_file(args, surf_file, dir_file):
-    # skip if the direction file already exists
+    # skip if the surface file already exists
     if os.path.exists(surf_file):
         f = h5py.File(surf_file, 'r')
         if (args.y and 'ycoordinates' in f.keys()) or 'xcoordinates' in f.keys():
@@ -263,8 +263,10 @@ if __name__ == '__main__':
     dir_file = net_plotter.name_direction_file(args)  # name the direction file
     if rank == 0:
         net_plotter.setup_direction(args, dir_file, net)
+    print("dir_file = {}".format(dir_file))
 
     surf_file = name_surface_file(args, dir_file)
+    print("surf_file = {}".format(surf_file))
     if rank == 0:
         setup_surface_file(args, surf_file, dir_file)
 
@@ -301,10 +303,16 @@ if __name__ == '__main__':
     # --------------------------------------------------------------------------
     # Plot figures
     # --------------------------------------------------------------------------
+    print("The surface file is => {}".format(surf_file))
     if args.plot and rank == 0:
         if args.y and args.proj_file:
+            print("plotting contour trajectory.")
             plot_2D.plot_contour_trajectory(surf_file, dir_file, args.proj_file, 'train_loss', args.show)
         elif args.y:
+            print("plotting 2D contour.")
             plot_2D.plot_2d_contour(surf_file, 'train_loss', args.vmin, args.vmax, args.vlevel, args.show)
         else:
+            print("printing 1D loss error.")
             plot_1D.plot_1d_loss_err(surf_file, args.xmin, args.xmax, args.loss_max, args.log, args.show)
+    else:
+        print("Nothing executed!")

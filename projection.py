@@ -36,7 +36,7 @@ def nplist_to_tensor(nplist):
     v = []
     for d in nplist:
         w = torch.tensor(d*np.float64(1.0))
-        # Ignoreing the scalar values (w.dim() = 0).
+        # Ignoring the scalar values (w.dim() = 0).
         if w.dim() > 1:
             v.append(w.view(w.numel()))
         elif w.dim() == 1:

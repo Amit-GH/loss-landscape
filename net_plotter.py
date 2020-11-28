@@ -37,7 +37,8 @@ def set_weights(net, weights, directions=None, step=None):
         else:
             changes = [d*step for d in directions[0]]
 
-        for (p, w, d) in zip(net.parameters(), weights, changes):
+        model_parameters = net.parameters()
+        for (p, w, d) in zip(model_parameters, weights, changes):
             p.data = w + torch.Tensor(d).type(type(w))
 
 
