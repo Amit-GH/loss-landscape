@@ -1,0 +1,81 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{naaclhlt2019}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{graphicx}
+
+\usepackage{url}
+
+\aclfinalcopy 
+
+\title{Evaluating properties of dropout for recurrent neural networks like GRU}
+\author{Amit Hattimare {\tt\small ahattimare@umass.edu }
+% For a paper whose authors are all at the same institution,
+% omit the following lines up until the closing ``}''.
+% Additional authors and addresses can be added with ``\and'',
+% just like the second author.
+% To save space, use either the email address or home page, not both
+\and
+Rachana Acharya {\tt\small rnacharya@umass.edu }}
+
+\begin{document}
+\maketitle
+
+\section{Problem Statement}
+Dropout is a well known regularization method that has been very successful with all kinds of feed-forward neural networks. Its properties have been well studied for image based neural networks. However, the reasons for its performance improvements on recurrent neural network based models, such as its effect on the underlying loss landscape and its ensemble averaging properties are not well understood. This project aims to understand these aspects of some popular dropout techniques for a recurrent neural network model using Gated Recurrent Unit(GRU) cells. 
+
+\section{Novelty Statement}
+\cite{DBLP:journals/corr/abs-1712-09913} describes the effect on the loss landscape of some of the popular image based models such as VGG, ResNet and DenseNet using visualizations. There has been a lot of work understanding certain other properties of Dropout for example co-adaptation of weights, dropout penalty, etc. have been studied for image based neural networks in \cite{DBLP:journals/corr/HelmboldL16}, \cite{conf/nips/BaldiS13}, etc. But, we do not see any related work in understanding the effect of dropout on the loss landscape of different models, which we hope to visualize. Moreover, dropout has been relatively less understood in the area of recurrent neural networks owing to the fact that there could be a loss of memory when we drop activations of hidden units. There have been some popular dropout techniques such as Variational Dropout \cite{gal2016theoretically}, Zoneout \cite{krueger2017zoneout} and Recurrent Dropout \cite{semeniuta2016recurrent} which evaluate the dropout only with respect to the accuracy and convergence. However, properties such as the dropout variant's ensemble averaging, co-adaption of weights, the dropout penalty with respect to other forms of regularization have not been studied. 
+
+
+\section{Methodology}
+Our experiments will be carried out for the task of sentiment analysis, which is a text classification task. Firstly, we convert the data to word embeddings using Word2Vec. To visualize the loss landscape of the data, we need to reduce the data to 2 dimensions. We will use t-Distributed Stochastic Neighbor Embedding(t-SNE) algorithm for this purpose. t-SNE is a machine learning algorithm for visualization. It is a nonlinear dimensionality reduction technique well-suited for embedding high-dimensional data for visualization in a low-dimensional space of two or three dimensions. Specifically, it models each high-dimensional object by a two or three-dimensional point in such a way that similar objects are modeled by nearby points and dissimilar objects are modeled by distant points with high probability. Now, to visualize the two/three dimensional data with respect to the loss, we will be making use of two popular libraries - seaborn and matplotlib.
+
+\\We intend to evaluate and compare the performance of the 3 main RNN based dropout techniques - Variational Dropout, Zoneout  and Recurrent Dropout. Each dropout technique will be applied to GRU, after which we will do some hyper-parameter tuning. The performance of each model will be evaluated and we will reason it based on the effects on loss landscape, co-adaptation of weights and the dropout penalty.
+
+\\Once we have 1/2/3D loss representation, we will show the learning rate curve, contour plots, and 3D plots to see effects of various dropouts. Co-adaptation of weights can be seen by plotting the weight distribution for each unit of a hidden layer.
+\\
+
+
+\section{Related work}
+A lot of recent work has been done in the parameter and loss visualization space but mostly for image classification tasks. \cite{li2018visualizing} paper visualizes the effect on loss landscape of neural networks due to skip connections, increased number of hidden layers, and using SGD optimization. \cite{NIPS2018_7515} paper visualizes the effects of batch normalization on neural network properties and concludes that BN does not contribute to internal covariance shift but rather makes the optimization problem smooth.
+
+\cite{neal2019modern} paper studies the bias-variance curve as a function of NN complexity and shows that both bias and variance and go down simultaneously as the model complexity increases. Again, through visualization and mathematical modeling, \cite{yang2020rethinking} paper indeed showed that as model complexity increases in NN, bias always down but variance shows a bell-like curve.
+
+\cite{gal2016theoretically} paper applies Dropouts on GRU for movie review task and proposes a novel way of applying dropout ratios on GRU connections. Performance is simply compared using error rates on the test data without other visualizations. 
+
+\cite{qi2020variational} paper uses variational inference based dropout technique in variational RNN model with GRU cell to solve the problem of slot filling in ATIS dataset.
+
+\section{Datasets}
+We will use \cite{maas-EtAl:2011:ACL-HLT2011} Large IMDB movie review dataset from Stanford. It has 25,000 highly polar movie reviews for training, and 25,000 for testing. It has equal number of positive and negative reviews. Every review is large (more than 40 words) and is associated with a binary sentiment polarity label. This dataset is intended to serve as a benchmark for sentiment classification.
+
+\section{Overlap statement}
+The work done in this project is new for us and there is no overlap between this and other works previously or currently being done by us.
+
+\section{Collaboration Plan}
+Our task split will be as follows: 
+\\\textbf{Rachana}
+\begin{enumerate}
+    \item Preprocessing the data
+    \item Building the text classification model using GRU
+    \item Implement Variational Dropout
+    \item Implement Zoneout
+    \item Visualization of loss landscape with Amit
+    \item Experiments to show co-adaptation of weights(or none thereof) of each dropout technique
+    
+\end{enumerate}
+\\\\\textbf{Amit}
+\begin{enumerate}
+    \item Dimensionality reduction using t-SNE
+    \item Implement Recurrent Dropout
+    \item Hyperparameter tuning of the all 3 GRU models(Variational, Zoneout and Reccurent)
+    \item Visualization of loss landscape with Rachana
+    \item Experiments to show ensemble properties of each dropout technique
+\end{enumerate}
+
+\bibliographystyle{apalike}
+\footnotesize
+\bibliography{yourbib}
+
+
+\end{document}

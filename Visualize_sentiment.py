@@ -7,14 +7,18 @@ import numpy as np
 import time
 import net_plotter
 import projection
-from SentimentAnalysis.Sentiment import evaluate, get_train_val_test_data_iterators
+from Sentiment import evaluate, get_train_val_test_data_iterators
 from plot_2D import plot_2d_contour
 from scheduler import get_job_indices
+import sys
 
 torch.manual_seed(3)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def load_sentiment_model():
-    saved_model_file_path = "../sentiment_models/gru_sentiment.pt"
+def load_sentiment_model(saved_model_file_path):
+    # For google colab these file paths are relative to the python file path.
+    # For this project, it has been set to loss-landscape folder. So all paths
+    # should be relative to that.
     if Path(saved_model_file_path).is_file():
         model = torch.load(saved_model_file_path)
         return model
@@ -26,14 +30,14 @@ def extract_model_weights(model):
 
 
 def get_direction_file_path(suffix: str = ""):
-    return "../sentiment_models/gru_sentiment_direction_file_{}.h5".format(suffix)
+    return "sentiment_models/gru_sentiment_direction_file_{}.h5".format(suffix)
 
 
 def normalize_directions(directions, weights):
     assert len(weights) == len(directions)
     for d, w in zip(directions, weights):
         # TODO: ignore bias weights for normalization. Take care of the last one-node layer.
-        d *= w.norm() / (d.norm() + 1e-8)
+        d *= w.cpu().norm() / (d.norm() + 1e-8)
 
 
 def create_random_directions(model):
@@ -63,7 +67,7 @@ def setup_directions(dir_file_path, model):
 
 
 def get_surface_file_path(suffix = ""):
-    return "../sentiment_models/gru_sentiment_surface_file_{}.h5".format(suffix)
+    return "sentiment_models/gru_sentiment_surface_file_{}.h5".format(suffix)
 
 
 def setup_surface_file(surf_file_path):
@@ -71,7 +75,7 @@ def setup_surface_file(surf_file_path):
         f = h5py.File(surf_file_path, 'r')
         if "xcoordinates" in f.keys() and "ycoordinates" in f.keys():
             f.close()
-            print("File {} already exists with coordinates.".format(dir_file_path))
+            print("File {} already exists with coordinates.".format(surf_file_path))
             return
         f.close()
 
@@ -110,12 +114,17 @@ def crunch_sentiment(model, weights, directions, train_iter, surf_file_path):
 
     indices, coords, _ = get_job_indices(losses, xcoordinates, ycoordinates, None)
     for count, index in enumerate(indices):
-        print("Evaluating coordinate {}/{}.".format(count, len(indices)))
-        coord = coords[index]
+        if count % 1 == 0:
+          print("Evaluating coordinate {}/{}.".format(count, len(indices)))
+          print("Time elapsed = {} sec.".format(int(time.time() - start_time)))
+        coord = coords[count]
         net_plotter.set_weights(model, weights, directions, coord)
         loss, accuracy = forward_pass_model(model, train_iter)
         losses.ravel()[index] = loss
         accuracies.ravel()[index] = accuracy
+        # save this data in file so that it need not be calculated next time
+        f[loss_key][:] = losses
+        f[acc_key][:] = accuracies
     f[loss_key][:] = losses
     f[acc_key][:] = accuracies
     f.close()
@@ -123,13 +132,19 @@ def crunch_sentiment(model, weights, directions, train_iter, surf_file_path):
 
 
 if __name__ == '__main__':
-    model = load_sentiment_model()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print("device = ", device)
+
+    model = load_sentiment_model("sentiment_models/gru_sentiment.pt")
     weights = extract_model_weights(model)
     dir_file_path = get_direction_file_path()
     setup_directions(dir_file_path, model)
     surf_file_path = get_surface_file_path()
     setup_surface_file(surf_file_path)
     directions = net_plotter.load_directions(dir_file_path)
+
+    # print("Going to exit.")
+    # sys.exit(0)
 
     # find cosine similarity between x and y directions
     similarity = projection.cal_angle(
